@@ -1,0 +1,44 @@
+# Generated automatically from Makefile.in by configure.
+##############################################################################
+#                                                                            #
+# MoonBase - a dBASE compatible database for C++                             #
+# makefile für: dbwish                                                       #
+# (C)opyright 1995 by Mark-André Hopf                                        #
+# (C)opyright 1995 by MAGIC INCLUDED RESEARCH                                #
+#                                                                            #
+# dBASE is a (tm) of Borland International, Inc.                             #
+#                                                                            #
+##############################################################################
+
+CC 				= c++
+
+CFLAGS		=
+
+DEFINES		= -DHAVE_CONFIG_H
+
+PRGFILE		= dbwish
+OBJS			= dbwish.o
+
+INCDIRS		= -I@x_includes@ -I@tcl_includes@ -I../include -I/usr/include/g++-include
+LIBDIRS		= -L@x_libraries@ -L@tcl_libraries@
+
+LIBS			= -ldbase -ltk -ltcl -lm -lX11
+
+all::$(PRGFILE)
+
+#---------------------------------------------------------------------------
+# Compiling
+#---------------------------------------------------------------------------
+.SUFFIXES: .cc
+
+.cc.o:
+	@echo compiling $*.cc ...
+	@$(CC) $(CFLAGS) $(DEFINES) $(INCDIRS) $*.cc -c -o $*.o
+
+#---------------------------------------------------------------------------
+# Linking
+#---------------------------------------------------------------------------
+$(PRGFILE): $(OBJS)
+	@echo linking $(PRGFILE) ...
+	@$(CC) $(OBJS) -o $(PRGFILE) $(LIBDIRS) $(LIBS)
+	@echo Ok

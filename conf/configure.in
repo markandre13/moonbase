@@ -1,0 +1,30 @@
+dnl TOAD - configure.in file
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT(../src/moonbase.cc)
+AC_CONFIG_HEADER(../src/config.h:../src/config.hin)
+
+dnl Checks for programs.
+
+AC_PROG_CXX
+
+dnl Checks for libraries.
+
+dnl Checks for header files.
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+
+dnl Checks for library functions.
+
+dnl *********************************
+dnl Checks for C++ specific features:
+dnl *********************************
+AC_LANG_CPLUSPLUS
+
+AC_MSG_CHECKING(for bool)
+AC_TRY_COMPILE(,bool a;,
+	AC_MSG_RESULT(yes);AC_DEFINE(HAVE_BOOL),
+	AC_MSG_RESULT(no)
+)
+
+AC_OUTPUT(../src/Makefile ../dbwish/Makefile)

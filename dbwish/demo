@@ -1,0 +1,220 @@
+#!dbwish -f
+
+##############################################################################
+#                                                                            #
+# MoonBase - a dBASE compatible database for C++                             #
+# Ein einfaches Tcl/Tk Interface für Frontend                                #
+# (C)opyright 1995 by Mark-Andre'Hopf                                        #
+#                                                                            #
+#----------------------------------------------------------------------------#
+#                                                                            #
+# 17.04.95 : Begonnen, daß Tcl/Tk Demo etwas ernster zu nehmen               #
+# 18.04.95 : dbwish für das Demo entwickelt                                  #
+#                                                                            #
+##############################################################################
+
+# Globale Variablen:
+# opt				: für Selektionen (dlgOpen)
+# filename	: Name der aktuellen db-Datei
+# quitmain  : für main
+
+# option add *Button.background navy
+
+proc db_filename {file} {
+	return [string match "*.dbf" $file]
+}
+
+##############################################################################
+# dlgOpen - Dialog zum Öffnen einer Datei                                    #
+##############################################################################
+proc dlgOpen {sTitel sMask} {
+	# DIALOGFENSTER ERSTELLEN
+  toplevel .open;												# Neues Fenster eröffnen
+  wm title .open $sTitel;								# Neuen Titel setzen
+  wm transient .open .;									# Das Systemmenü weglassen wenn möglich
+  grab .open;			# Das Wechseln zu anderen Fenstern dieses Programms verbieten
+
+  # LISTBOX FÜR FILES
+  frame .open.br
+  scrollbar .open.br.sb -command ".open.br.lb yview"
+  listbox   .open.br.lb -yscroll ".open.br.sb set" -relief raised
+  tk_listboxSingleSelect .open.br.lb;			# nur immer einen Eintrag auswählen
+  pack .open.br.sb -side right -fill y
+  pack .open.br.lb -side left -fill both -expand yes
+  pack .open.br -side top -expand yes -fill both
+
+  # BUTTONS
+  frame .open.bf
+  button .open.bf.ok -text "Ok" -width 16 \
+  	-command {set opt [.open.br.lb get [.open.br.lb curselection]]}
+  button .open.bf.abort -text "Abort" -width 16 -command {set opt ""}
+  pack .open.bf -side bottom -fill x -expand yes
+  pack .open.bf.ok -side left -padx 5 -pady 5
+  pack .open.bf.abort -side left -padx 5 -pady 5
+  # DOPPELKLICK AUF DATEINAMEN WIE "OK" BUTTON
+	bind .open.br.lb <Double-Button-1> {set opt [.open.br.lb get [.open.br.lb curselection]]}
+
+  # DIRECTORY LADEN UND IN DIE LISTBOXEN SCHREIBEN
+  foreach filename [exec ls] {
+    if {[string match $sMask $filename]} {
+    	.open.br.lb insert end $filename
+  	}
+  }
+
+  # AUF EINEN DER BUTTONS WARTEN UND DAS ERGEBNIS LIEFERN
+  global opt
+  set opt ""
+  tkwait variable opt
+  destroy .open
+  return $opt
+}
+
+##############################################################################
+# pOpen - Eine Datenbank öffnen                                              #
+##############################################################################
+proc pOpen {} {
+  global filename
+  
+  set newfile [dlgOpen "open database" "*.dbf"]
+  if {$newfile==""} {
+    return
+  }
+  if {[dbUse $newfile]==".T."} {
+    set filename $newfile
+		pDisplay 
+	}
+}
+
+##############################################################################
+# pClose - Eine Datenbank schließen                                          #
+##############################################################################
+proc pClose {} {
+  global filename
+  set filename ""
+  dbUse ""
+  pDisplay
+}
+
+##############################################################################
+# Die aktuelle Datenbank im ausgeben                                         #
+##############################################################################
+proc pDisplay {} {
+  global filename
+  
+  destroy .client
+	canvas .client
+  
+  if {$filename==""} {
+		label .client.text -text "no database" -height 15 -width  40
+		pack .client.text
+  } else {
+    frame .client.head
+    label .client.head.name -text "db-file \"[dbDbf]\" with [dbRecCount] records"
+    pack .client.head -side top -fill x
+    pack .client.head.name -side left
+    
+    set fields [dbFldCount]
+    
+    # Feldnamen ausgeben
+    frame .client.b
+    pack .client.b -side left -fill both
+    for {set i 1} {$i <= $fields} {set i [expr $i+1]} {
+    	frame .client.ln$i -relief groove -bd 2
+      pack  .client.ln$i -side top -fill x      
+      label .client.ln$i.f -anchor nw -text [dbField $i] -width 15
+      pack  .client.ln$i.f -side left      
+    }
+
+		# Feldinhalt des aktuellen Datensatzes ausgeben
+    #frame .client.c
+    #pack .client.c -side right -fill both
+    for {set i 1} {$i <= $fields} {set i [expr $i+1]} {
+      label .client.ln$i.t -text [dbRead [dbField $i]]
+      pack  .client.ln$i.t -side left -fill x
+    }   
+  }
+	pack .client -side top
+}
+
+proc pDown {} {
+	dbSkip
+  set fields [dbFldCount]
+  for {set i 1} {$i <= $fields} {set i [expr $i+1]} {
+     .client.ln$i.t configure -text [dbRead [dbField $i]]
+  }   
+}
+
+proc pUp {} {
+	dbSkip -1
+  set fields [dbFldCount]
+  for {set i 1} {$i <= $fields} {set i [expr $i+1]} {
+     .client.ln$i.t configure -text [dbRead [dbField $i]]
+  }   
+}
+
+##############################################################################
+# about - about this program                                                 #
+##############################################################################
+proc pAbout {} {
+  tk_dialog .about "About demo..." \
+  								 "MoonBase v0.01\n(C)1995 by Mark-Andre'Hopf" \
+  								  "info" -1 "Ok"
+  # tkwait visibility .about
+  # grap .about
+  # tkwait window .about
+}
+
+##############################################################################
+proc main {} {
+  global filename quitmain
+  set filename ""
+  
+	wm title . "MoonBase v0.01"
+	wm minsize . 1 1;										# Größenänderungen zulassen
+	wm maxsize . 1024 768
+
+	# DIE MENUBAR DEFINIEREN 
+	frame .mbar -relief raised -borderwidth 1
+	pack .mbar -side top -fill x
+  # File
+	menubutton .mbar.file -text "File" -menu .mbar.file.m
+	menu .mbar.file.m
+	.mbar.file.m add command -label "New" 
+	.mbar.file.m add command -label "Open" -command "pOpen" 
+	.mbar.file.m add command -label "Save"
+	.mbar.file.m add command -label "Save as..."
+	.mbar.file.m add command -label "Close" -command "pClose" 
+	.mbar.file.m add command -label "Quit" -command {set quitmain 1}
+	pack .mbar.file -side left
+	# Edit
+	menubutton .mbar.edit -text "Edit" -menu .mbar.edit.m
+	menu .mbar.edit.m
+	.mbar.edit.m add command -label "Modify structure"
+	pack .mbar.edit -side left
+	# Info
+	menubutton .mbar.info -text "Info" -menu .mbar.info.m
+	menu .mbar.info.m
+	.mbar.info.m add command -label "About" -command "pAbout"
+	pack .mbar.info -side left
+	# add a real menubar behavior to all the menubuttons
+	tk_menuBar .mbar .mbar.file .mbar.edit .mbar.info
+	
+	#focus .list
+	#bind .list <Double-Button-1> {foreach titel [selection get] {show $titel}}
+	
+  frame .client
+	frame .ctrl
+	pack .ctrl -side bottom -fill x
+	button .ctrl.bdown -bitmap @b_down.xbm -command "pDown"
+	pack .ctrl.bdown -side right
+	button .ctrl.bup -bitmap @b_up.xbm -command "pUp"
+	pack .ctrl.bup -side right
+	button .ctrl.bgo -bitmap @b_go.xbm
+	pack .ctrl.bgo -side right
+	
+	pDisplay
+	tkwait variable quitmain
+}
+
+main
+exit

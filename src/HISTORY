@@ -1,0 +1,182 @@
+
+	MoonBase - a dBase compatible database for C++
+	(c) 1993,95 Mark-André Hopf
+	Dokumentation der Entstehung
+	
+	version 0.01
+	============
+
+	13.01.1995:
+	Begonnen mit Borland C++ 3.1 auf den Ueberresten eines aelteren
+	Versuchs, bei dem ich die Uebersicht verloren hatte.
+
+	23.01.1995:
+	'fopen' gegen 'open' ausgetauscht, 'lock' und 'unlock' in dbFileIO für
+	MS-DOS programmiert, arbeitet jedoch nicht sauber mit dBASE zusammen.
+
+	24.01.1995:
+	Lesen eines Datensatzes mit database(<Feldname>|<Feldnummer>)
+	liefert eine Referenz auf ein 'dbData' Objekt, welches fuer die
+	Typkonvertierung verantwortlich ist. Wie folgt zu verwenden:
+							char *text = (char*)database("Name");
+							int i = (int)database("Jahr");
+	ACHTUNG:
+	Zeiger auf char* gelten in der Regel nur fuer den aktuellen Datensatz,d.h.bei
+				printf("%s %i %s",(char*)db("Name"),d.Skip(),(char*)d("Name"));
+	zeigen beide Strings auf den gleichen Buffer und somit den gleich Text.
+	UeBERLEGUNGEN:
+	Entry Objekte muessen mehr ueber den Datentyp wissen, den sie verwalten und
+	enger in die Datenbank integiert werden (copy on demand, bei Aenderung auf
+	die Datenbank bezogener dbData Objekte erfolgt eine Speicherung, etc.) und
+	es koennten Operationen mit dbData Objekten verwirklicht werden (+,-,*, etc.)
+
+	25.01.1995:
+	Das Projekt wegen seiner Groesse auf 3 Datei aufgeteilt.
+	Neues Konzept fuer dbData:
+	dbData erhaelt einen Zeiger auf einen NICHT nullterminierten String im
+	Recordbuffer und setzt als 'friend' ein Flag bei Schreibzugriffen auf den
+	Datensatz in database. Oh, und dbData muss deshalb auch einen Zeiger auf
+	database enthalten.
+	Weiter: Und die Laenge und der Typ des Strings muessen vermerkt sein, sowie
+	die Moeglichkeit festzustellen, ob ein Schreibzugriff moeglich ist, wenn z.B.
+	der Datensatz gesperrt wurde.
+
+	Heute Abend bin ich darauf gekommen, warum wohl das Record Locking unter
+	UNIX nicht funktionierte, muss ich gleich morgen an der Uni ausprobieren.
+
+	Die Dateizugriffe aus 'database' nach 'dbFileIO' verschoben, evtl. wird
+	'database' noch ueberfluessig.
+
+	Ein Buffer braucht nur fuer einen Datensatz zu existieren, es wird davon
+	ausgegangen, dass ein Festplattencache hier bessere Arbeit leistet. dBASE
+	hatte spaeter ja auch einen als Zusatzprogramm dabei.
+
+	Fuer alle mit dem Buffer in Beziehung stehenden Operationen muessen
+	folgende Punkte beruecksichtigt werden:
+	- Bei Schreibzugriffen auf den Buffer den zugehoerigen Record sperren, wenn
+		dies noch nicht geschehen ist.
+	- Sperrung aufheben, wenn der Datensatzzeiger bewegt wird und die Sperrung
+		nur von einem Schreibzugriff auf den Buffer angefordert wurde, d.h. nicht
+		von rlock() oder flock(), vorher den Buffer speichern, falls er veraendert
+		wurde.
+	- evtl. willkuerliches updaten des Buffers vermeiden, da sonst alte und neue
+		Eintraege widerspruechlich sind, am besten nur bei einem Neusetzen des
+		Datensatzzeigers updaten
+		=> den Buffer updaten, wenn der Datensatzzeiger geaendert wurde, auch auf
+		den gleichen Wert wie vorher und eine Leseanforderung anliegt
+
+	13.02.1995:
+	Wie ein Wahnsinniger die Zugriffsmechanismen in Klassen verpackt und mir
+	den Speicher zerbombt. Froehliches Debuggen in spaeter Nacht mit L7 zum
+	abreagieren.
+
+	14.02.1995:
+	Guten Morgen BUGs. Logfile eingebaut.
+	Haengt nur unter der IDE...
+	Alles klar dbHeader.fieldindex wurde nicht mit new initialisiert, weil
+	als Bedingung || statt && in einer if-Anweisung haette stehen muessen.
+	Komplikationen bei der Ausgabe ueber cout.
+  Konvertierungprogramm fuer die Sourcefiles programmiert und nach LINUX
+  gewechselt, wo es dann nach 2h mit vielen Warnungen beim Compilieren
+  funktionierte.
+
+	15.02.1995
+	Nach zwei 'include <unistd.h>' compiliert g++ ohne Warnungen. Das Auslesen
+	der Datensaetze geht allerdings in die Hose, suche den Fehler mit gdb, was
+	zu umstaendlich ist und entdecke mit Hilfe des Logfiles, dass meine Probleme
+	wohl mit dem gleichen Fehler zusammenhaengen, der schon gestern fuer meine
+	Probleme mit dem cout zustaendig war.
+	Ha! Simpel. Der Constructor von dbData musste bNoString noch auf false
+	setzen.
+
+	29.03.1995
+	Klassen verfeinert
+
+  03.04.1995
+  Eof() und Replace() funktionieren nicht
+
+  10.04.1995
+  - UnlockAll ist noch nicht realisiert
+  - Dbf() funktioniert nicht
+
+  11.04.1995
+  erneute UNIX Anpassung, Eof() repariert
+
+  12.04.1995
+  - UNIX: Record Locking jetzt über fcntl
+  - den Dbf() Fehler beseitigt und vor Scham im Boden versunken
+  - Memofelder bis zu 504 Zeichen können in Dateien geschrieben werden
+  - Dateinamen werden wenn die Endung nicht ".dbf" ist, erweitert
+
+  13.04.1995
+  - Memofelder können in gesamter Länge in Dateien geschrieben werden
+
+  14.04.1995
+  - APPEND BLANK funktioniert!
+
+  16.04.1995
+  - DELETE, DELETED() & RECALL implementiert
+
+  17.04.1995
+  Nur falls es bis jetzt untergegangen ist, das Verhalten unter DOS im
+  Multiuserbetrieb entspricht absolut nicht dem von dBASE, da mit RLock
+  gesperrte Records nicht mehr gelesen werden koennen. So arbeitet zum
+  Beispiel im Modus DELETED ON der SKIP Befehl nicht mehr identisch. Bei
+  der UNIX Variante müsste das Verhalten jedoch konformer zu dBASE sein,
+  da dieses OS ueber read- & writelocks verfügt.
+
+	20.04.1995
+	- RECNO und alle davon abhängigen Routinen lesen nun immer den aktuellen
+	  Wert aus der Datenbank. (War vorher schon mal implementiert, ist aber beim
+	  andauernden Wechsel zwischen DOS und LINUX verschütt gegangen.)
+
+	23.04.1995
+	- Felder hinzufügen noch nicht getestet und create_end ist noch nicht fertig
+
+  02.05.1995
+  - create_end scheint am 24.04. fertig geworden zu sein, muß aber noch in
+    dbFileIO ergänzt werden. Bin auch noch nicht ganz so mit dem Fehler-
+    mechanismus zufrieden
+
+	04.05.1995
+	- begonnen SELECT zu implementieren, Programmnamen von 'Broomstick' in
+		'MoonBase' abgeändert 
+
+	09.05.1995
+	- SELECT beendet
+
+	version 0.02
+	============
+	
+	10.05.1995
+	- db-Dateien können jetzt erzeugt werden, Versionsnummer auf v0.02 erhöht
+
+  14.06.1995
+  - aufgefallen, daß UNLOCK ALL ja immer noch nicht implementiert ist, dabei
+    ist das doch so simpel (bzw. langweilig) zu programmieren; sollte auch
+    endlich mal alle Datentypen vollständig unterstützen und die Fehler-
+    meldungen vereinheitlichen
+ 
+ 	14.04.1996
+ 	- GNU Autoconf, kleinere Anpassungen für GCC 2.7.0
+
+	02.05.1996
+	- Fehler in dbFileIO::writerecord() beseitigt, der verhinderte, daß der
+		Bufferinhalt geschrieben wurde, wenn nach 'REPLACE' der Datensatzzeiger
+		auf 'EOF' gesetzt wurde. Also, wenn man in einer leeren Datei folgendes
+		gemacht hat:
+		APPEND BLANK								; 1.Datensatz einfügen
+		REPLACE NAME WITH "text"		; Datensatz beschreiben
+		SKIP												; zum nächsten Datensatz gehen (da hier EOF
+																; vorliegt, wurde der geänderte Datensatz nicht
+																; gepeichert.)
+		? NAME											; Buffer wird gelehrt
+		GO 1
+		? NAME											; Buffer bleibt gelehrt
+	- Ein weiterer Fehler war in 'dbFileIO::fileopen(const char* name)'
+		wo die Schleifenbedingung zum Öffnen der Memodatei
+                        for(i=1; i++; i<=FldCount())
+    lautete statt
+                        for(i=1; i<=FldCount(); i++)
+		Welche Auswirkungen das gehabt hat, weiß ich nicht.
+	- 

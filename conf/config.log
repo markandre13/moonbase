@@ -1,0 +1,4 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+c++ -c -m486 -pipe -I/opt/include -L/opt/lib conftest.C

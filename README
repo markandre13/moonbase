@@ -1,0 +1,14 @@
+Please note:
+
+- run 'build' to build MoonBase
+- You SOULDN'T use MoonBase only when working with huge databases because
+  MoonBase is slow and doesn't know all theses nice features a good SQL
+  database has.
+- MoonBase will do fine with small databases, maybe up to 100 records or as
+  a just-for-fun database.
+- MoonBase will help you to import xBase databases when moving to a real
+  DBMS.
+- Since i haven't installed Tcl/Tk anymore i don't know if dbwish still
+  compiles. One shouldn't use this nasty interpreter anyhow.
+
+Mark

@@ -1,0 +1,6 @@
+echo "Building MoonBase"
+cd conf
+configure
+cd ../src
+make
+cd ..

@@ -1,0 +1,69 @@
+ +-------------------------------------------------------------------------+
+ !                                                                         !
+ ! MoonBase - a dBASE compatible database for C++                          !
+ !                                                                         !
+ +-------------------------------------------------------------------------+
+
+  MoonBase is (C)opyright 1993,95,96 Mark-André Hopf
+  The  'MAGIC INC.' logo is  (C)1989,95,96 Mark-André Hopf and is NOT part of
+  the GNU General Public License.
+  All rights reserved.
+
+  dBASE is a registered trademark of Borland International, INC.
+
+	MoonBase is free software; you can redistribute  it  and/or  modify  it
+	under the terms of the GNU General Public License version 2 as  published
+	by the Free Software Foundation in the file "GNU-GPL" which 	you  should
+	have received along with this program; if not, write to the:
+	"Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA."
+
+	This  program is  distributed  in the hope that it will be useful, but WE
+	DISCLAIM  ALL  WARRANTIES  WITH  REGARD TO THIS  SOFTWARE,  INCLUDING ALL
+	IMPLIED  WARRANTIES  OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL WE
+	BE LIABLE  FOR ANY SPECIAL,  INDIRECT  OR  CONSEQUENTIAL  DAMAGES OR  ANY
+	DAMAGES  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,	WHETHER
+	IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER  TORTIOUS  ACTION,  ARISING
+	OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS	SOFTWARE.
+
+	See the GNU General Public License for more details.
+
+	-------------------------------------------------------------------------
+
+	If you want or need to use this software for profit, what i won't
+	suggest, write to:
+
+	eMail: hopf@informatik.uni-rostock.de
+	WWW  : http://www.informatik.uni-rostock.de/~hopf
+
+  or
+
+	Mark-André Hopf
+	Joachim-Jungius-Str. 8b
+	18069 Rostock
+	Germany
+
+  or
+  
+  Mark-André Hopf - Softwareentwicklung
+  Baumgarten 33
+  30966 Hemmingen
+  Germany
+
+	( ...but i do suppose this will never happen. )
+
+	-------------------------------------------------------------------------
+ 
+  This program was written and compiled with
+  
+  i486:
+  - DOS 5.0 and Borland C++ 3.1
+  - Linux 1.1.59. (Slackware 2.1.0) and g++ (v2.4)
+  
+  sparc:
+  - Solaris 2.3 and g++ (v2.?)
+
+  and the best texteditor for UNIX i know of: "joe - Joe's Own Editor"
+
+
+	Yours Mark-André Hopf
+	Rostock, 13.April 1996

@@ -1,0 +1,261 @@
++------------------------------------------------------------------------------+
+!																																							 !
+!                 MoonBase - a dBASE compatible database for C++							 !
+!                DBWISH - a Tcl/Tk windowing shell with MoonBase							 !
+!                     (C)opyright 1993,95 by Mark-Andre'Hopf      						 !
+!																																							 !
++------------------------------------------------------------------------------+                 
+
+  MoonBase ist freie Software. Sie dürfen es weitergeben und/oder modifizieren
+  unter den Bedingungen der GNU General Public License Version 2, in der Form,
+  wie sie von der  Free Software Foundation  veröffentlicht wurde. Die GNU GPL
+  sollte  diesem  Programm  in der Datei "GNU-GPL"  beiliegen,  wenn nicht, so 
+  schreiben Sie bitte an die:
+    Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+				 +------------------------------------------------------------+
+         ! DIE BENUTZUNG DIESER SOFTWARE ERFOLGT AUF EIGENES RISIKO ! !
+         !             USE OF THIS SOFTWARE AT OWN RISK !							!
+				 +------------------------------------------------------------+
+
+	meaning that...
+	 
+   WE  DISCLAIM  ALL  WARRANTIES  WITH REGARD TO THIS SOFTWARE, INCLUDING  ALL
+  IMPLIED  WARANTIES OF MERCHANTABILITY  AND FITNESS.  IN NO EVENT SHALL WE BE
+  LIABLE FOR ANY SPECIAL, INDIRECT  OR CONSEQUENTIAL  DAMAGES OR  ANY  DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE,DATA OR  PROFITS, WHETHER IN AN ACTION
+  OF  CONTRACT,  NEGLIENCE  OR OTHER  TORTIOUS  ACTION,  ARRISING OUT OF OR IN
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+   SEE THE GNU GENERAL PUBLIC LICENSE FOR MORE DETAILS.
+
+
+	dBASE is a registered trademark of Borland International, Inc.
+
+-------------------------------------------------------------------------------
+                 
+                                      PROLOG
+                                      ======
+                                      
+'dbwish' ergänzt das von Tcl/Tk bekannte  'wish'  um ein  paar  dBASE  ähnliche
+Befehle, die ich weiter unten erläutern werde. Wenn Sie bereits  Erfahrung  mit
+dBASE haben werden Sie  keine  Schwierigkeiten  haben,  sich  unter  den  neuen
+Befehlen zurechtzufinden.
+
+Sollten Ihnen irgendwelche Fehler an dem Programm auffallen, dann schreiben Sie
+mir doch bitte an:
+
+	e-mail: hopf@informatik.uni-rostock.de
+
+oder über meine Homepage, wo Sie auch immer die  neuste  Version  von  MoonBase
+vorfinden:
+
+	www		: http://informatik.uni-rostock.de/~hopf
+
+Ich  suche  außerdem  noch  eine  ausführliche  Beschreibung  sämtlicher  dBASE
+Dateiformate wie der Indexdateien und der LockFiles.
+
+Mark-Andre'Hopf
+Rostock, den 10.März 1995
+
+-------------------------------------------------------------------------------
+
+                                  BEFEHLSÜBERSICHT
+                                  ================
+
+ dBASE  Dateien  sind  im  Grunde nichts anderes als Tabellen. Es gibt  mehere
+ Spalten, oder auch 'Felder' genannt. Jedes Feld hat einen bestimmten Typ  und
+ eine vorgegebene Länge. Eine Zeile nennt man 'Datensatz' (engl. Record).
+ Datensätze können hinzugefügt, gelöscht und geändert  werden  und  alle  ihre
+ Felder haben das gleiche Format. Wenn Sie sich bereits mit  dBASE  auskennen,
+ dann werden Sie sich recht schnell einarbeiten können.
+
+ Zahlen können auch in den von 'C' bekannten Schreibweisen eingegeben  werden,
+ also 0x... für Hexadezimal und 0... für Octal.
+
+dbCreateBegin <db-Datei> <Anzahl Felder von 1 bis 255>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Beginnt das Erstellen einer db-Datei. Direkt nach 'dbCreateBegin' sollten alle
+Felder mit 'dbCreateAdd' definiert werden und das Erstellen mit  'dbCreateEnd'
+abgeschlossen werden. Die so definierte Datenbank  steht  dann  zur  Benutzung
+bereit.
+Anmerkung:
+Wenn bereits eine Datei mit dem Namen existiert wird sie überschrieben. Passen
+Sie also hier ein wenig auf, indem Sie z.B. vorher  versuchen  die  Datei  mit 
+'dbUse' probeweise zu öffnen.
+
+dbCreateAdd <Feldname> <Typ> <Länge> [<Dezimalstellen>]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Durch mehrmaligen Aufruf von 'dbCreateAdd'  können  Sie  nach  'dbCreateBegin'
+nacheinander alle Felder der neu zu erstellenden Datenbank definieren.
+Dabei muß 'dbCreateAdd' so oft aufgerufen werden, wie Sie  die  Anzahl  Felder
+angegeben haben.
+
+  Feldname			: 10 Zeichen; das erste Zeichen darf keine Zahl sein
+  Typ						: "C" für Zeichen
+  								"N" für Zahlen
+  								"D" für ein Datum (z.Zt. nicht unterstützt)
+  								"B" für ein Feld vom Typ Boolean (z.Zt. nicht unterstüzt)
+  								"M" für ein Memofeld (können z.Zt. nur gelesen werden)
+  Länge					: Die Feldlänge von 1 bis 255
+  Dezimalstellen: Gibt bei Zahlen die Anzahl Zeichen von der Feldlänge an,
+  								die als Dezimalstellen bertrachtet werden sollen.
+  								(Dezimalstellen werden z.Zt noch nicht unterstützt)
+
+dbCreateEnd
+^^^^^^^^^^^
+Wenn alle Felder mit 'dbCreateAdd' definiert wurden,  schließt  dieser  Befehl
+die Definition ab und sorgt dafür, daß die Datenbank genutzt werden kann,  als
+wäre sie mit 'dbUse' geöffnet worden.
+
+dbUse [<db-Datei>]
+^^^^^^^^^^^^^^^^^^
+Öffnet eine db-Datei zur Bearbeitung. Konnte keine Datei geöffnet werden, gibt
+die Funktion ".F." zurück. Wird kein Dateiname  angegeben,  wird  die  aktuell
+geöffnete db-Datei geschlossen.
+
+dbDbf
+^^^^^
+Liefert den vollständigen Namen der aktuell geöffneten db-Datei zurück.
+
+dbSelect <Bereichsname>
+^^^^^^^^^^^^^^^^^^^^^^^
+Jede Datenbank wird in einem eigenen  Bereich  geöffnet,  wobei  man  zwischen
+meheren Bereich mit dem Befehl dbSelect wechseln  kann.  Somit  können  mehere
+db-Dateien gleichzeitig geöffnet sein.
+Sie öffnen beispielsweise zwei Dateien wie in diesem Beispiel...
+
+	dbSelect AUFTRAG
+	dbUse a050595.dbf
+	dbSelect KUNDEN
+	dbUse knd_001.dbf
+
+...und  können  anschließend  mit  'dbSelect AUFTRAG'  und   'dbSelect KUNDEN'
+zwischen beiden Dateien wechseln. Dies kann  auf  einem  NFS  schneller  sein,
+als die entsprechende Datei jedesmal erneut zu öffnen.
+
+dbRead <Feldname>
+^^^^^^^^^^^^^^^^^
+Liefert den Inhalt des angegebenen Feldes des aktuellen Datensatzes zurück.
+Der zurückgelieferte Wert ist evtl. nicht aktuell, da auch andere Benutzer auf
+die Datenbank  zugreifen  können.  Mit  'dbSkip 0'  können  Sie  ein  erneutes
+Einlesen aus der Datenbank vor einem 'dbRead' erzwingen, wenn dies nötig ist.
+Um den aktuellen Datensatz zu ändern stehen die Befehle  'dbGo'  und  'dbSkip'
+zur Verfügung.
+
+dbReplace <Feldname> <Wert>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Schreibt den 'Wert' in das angegebene Feld  des  aktuellen  Datensatzes.  Wenn
+dies nicht möglich ist,liefert die Funktion ".F." zurück. Dies kann passieren,
+wenn ein anderer Benutzer ebenfalls bereits in diesen Datensatz schreibt. Wenn
+Sie in den Datensatz hineingeschrieben haben,dann ist dieser Datensatz solange
+für andere gesperrt, bis sie entweder  den  Datensatzzeiger  mit  "dbGo"  oder
+"dbSkip" bewegen oder in expliziet mit "dbUnlock" wieder freigeben. Haben  Sie
+den Datensatz mit "dbRLock" gesperrt, dann besteht die  Sperrung  nach  "dbGo"
+und "dbSkip" jedoch weiter.
+
+dbAppendBlank
+^^^^^^^^^^^^^
+Fügt einen neuen Datensatz am Ende der Datenbank  an  und  liefert  ".T."  bei
+Erfolg. Der Datensatzzeiger steht anschließend auf dem neuen Datensatz.
+(Im Gegensatz zu dBASE existiert für den neuen Datensatz gleich eine temporäre
+Sperre, die das Beschreiben dieses Datensatzes durch  andere  verhindert.  Die
+Sperre bleibt solange aufrechterhalten, bis Sie den Datensatzzeiger bewegen.)
+
+dbGo <Datensatznummer>
+^^^^^^^^^^^^^^^^^^^^^^
+Setzt den Datensatzzeiger auf den angegebenen  Datensatz.  Liefert  ".T."  bei
+Erfolg.
+
+dbSkip [<Schrittweite>]
+^^^^^^^^^^^^^^^^^^^^^^^
+Bewegt den Datensatzzeiger um die angegebene Schrittweite. Liefert ".T.", wenn
+der Datensatzzeiger bewegt wurde. Wird keine Schrittweite angegeben,  so  wird
+automatisch 1 als Wert angenommen.
+
+dbEof
+^^^^^
+Liefert ".T.", wenn Datensatzzeiger hinter dem letzten Datensatz  steht,  also
+wenn dbRecNo = dbRecCount+1 ist.
+
+dbBof
+^^^^^
+Liefert ".T.", wenn der Datensatzzeiger vor dem ersten Datensatz  steht,  also
+wenn dbRecNo = 0 ist.
+
+dbRecCount
+^^^^^^^^^^
+Liefert die Gesamtzahl aller Datensätze. Ist die  Datenbank  leer  oder  keine
+Datenbank geöffnet, wird 0 zurückgegeben.
+
+dbRecNo
+^^^^^^^
+Liefert die Nummer des aktuellen Datensatzes.  Ist  keine  Datenbank  geöffnet,
+wird 0 zurückgegeben.
+
+dbFldCount
+^^^^^^^^^^
+Liefert die Anzahl der Felder pro Datensatz.
+
+dbField <Feldnummer>
+^^^^^^^^^^^^^^^^^^^^
+Liefert den Namen des angegebenen Feldes.
+
+dbFieldNo <Feldname>
+^^^^^^^^^^^^^^^^^^^^
+Liefert die Nummer zum angegebenen Feldnamen.
+
+dbRLock
+^^^^^^^
+Setzt einen Schreibschutz für den angegeben Datensatz und liefert ".F.",  falls
+der Datensatz bereits von einem anderen Benutzer gesperrt ist und deshalb nicht
+gesperrt werden kann. Die Sperrung kann nur mit 'dbUnlock', 'dbUnlockAll'  oder
+einem Schließen der aktutellen Datenbank wieder aufgehoben werden.
+
+dbUnlock
+^^^^^^^^
+Löscht eine mit 'dbRLock' oder 'dbReplace' gesetzte  Schreibsperre  für  andere
+Benutzer. Liefert ".T." bei Erfolg.Liefert auch ".T." wenn ein anderer Benutzer
+für diesen Datensatz eine Schreibsperre gesetzt hat. Diese bleibt  dann  jedoch
+weiter bestehen.
+
+dbUnlockAll (noch nicht verfügbar)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Gibt alle eigenen mit 'dbRLock' und 'dbReplace' gesetzten Schreibsperren wieder
+frei.
+
+dbDelete
+^^^^^^^^
+Markiert den aktuellen Datensatz zum späteren Löschen.
+
+dbRecall
+^^^^^^^^
+Hebt die Löschmarkierung für den aktuellen Datensatz wieder auf.
+
+dbIsDeleted
+^^^^^^^^^^^
+Liefert ".T.", wenn für den aktuellen Datensatz eine Löschmakierung besteht.
+
+dbCopyMemoTo <Memofeld> <Dateiname>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Kopiert den Inhalt eines Memofeldes in eine Datei und liefert ".T." bei Erfolg.
+Anmerkung:
+Ich weiß nicht,ob diese Funktion auch bei sehr großen Memodateien funktioniert,
+da ich keine genauen Kenntnisse über die Memodateien habe. Aus diesem Grund ist
+auch keine Funktion zum Beschreiben von Memodateien implementiert.
+
+dbLastError
+^^^^^^^^^^^
+Liefert manchmal eine passende Fehlermeldung. Mal auf Deutsch, mal auf Englisch
+mit einigen Verweisen auf die Interna von MoonBase. Zur Fehlersuche in  eigenen
+Programmen ist sie vielleicht schon ganz hilfreich.
+
+dbVersion
+^^^^^^^^^
+Liefert die Versionsnummer von MoonBase. Die Versionsnummer, als dieses Tutorial
+erstellt wurde war "v0.02 Rel.10.05.95".
+
+
+"Wir danken für die Einhaltung aller Sicherheitsmaßnahmen"
+                                    (Bordcomputer des Raumschiffes "Dark Star")
+
+-------------------------------------------------------------------------------
